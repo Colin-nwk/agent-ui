@@ -1,6 +1,7 @@
 import React from 'react';
 import { Phone, MapPin, Mail } from 'lucide-react';
-import { Customer } from '../../types/customer';
+import { Customer } from '../../../types/customer';
+import { SecondaryButton } from '../../../components/common';
 
 interface CustomerDetailsProps {
     customer: Customer;
@@ -9,17 +10,32 @@ interface CustomerDetailsProps {
 }
 
 export const CustomerDetails: React.FC<CustomerDetailsProps> = ({ customer, onEdit, onNewSale }) => {
+    const [isImageExpanded, setIsImageExpanded] = React.useState(false);
+
     return (
         <div className="space-y-6">
             <div className="text-center">
                 {customer.image ? (
-                    <img
-                        src={customer.image}
-                        alt={`${customer.firstname} ${customer.lastname}`}
-                        className="w-24 h-24 rounded-[2rem] object-cover mx-auto mb-4 border-4 border-white dark:border-slate-700 shadow-xl"
-                    />
+                    <div className="relative group mx-auto mb-4 w-fit">
+                        <img
+                            src={customer.image}
+                            alt={`${customer.firstname} ${customer.lastname}`}
+                            onClick={() => setIsImageExpanded(!isImageExpanded)}
+                            className={`
+                                rounded-[2rem] object-cover transition-all duration-300 cursor-zoom-in border-4 border-white dark:border-slate-700 shadow-xl
+                                ${isImageExpanded
+                                    ? 'w-64 h-64 rounded-2xl md:w-80 md:h-80'
+                                    : 'w-28 h-28 hover:scale-105'}
+                            `}
+                        />
+                        {!isImageExpanded && (
+                            <div className="absolute inset-0 bg-black/20 rounded-[2rem] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                                <span className="text-white text-xs font-bold bg-black/50 px-2 py-1 rounded-full">View</span>
+                            </div>
+                        )}
+                    </div>
                 ) : (
-                    <div className="w-24 h-24 bg-gradient-to-br from-primary/20 to-primary/5 dark:from-primary/30 dark:to-primary/10 rounded-[2rem] flex items-center justify-center text-primary font-bold text-3xl mx-auto mb-4 border-4 border-white dark:border-slate-700 shadow-xl">
+                    <div className="w-28 h-28 bg-gradient-to-br from-primary/20 to-primary/5 dark:from-primary/30 dark:to-primary/10 rounded-[2rem] flex items-center justify-center text-primary font-bold text-4xl mx-auto mb-4 border-4 border-white dark:border-slate-700 shadow-xl">
                         {customer.firstname?.charAt(0) || 'C'}
                     </div>
                 )}
@@ -76,6 +92,12 @@ export const CustomerDetails: React.FC<CustomerDetailsProps> = ({ customer, onEd
                 >
                     Edit Profile
                 </button>
+                {/* <SecondaryButton
+                    onClick={() => onEdit(customer)}
+
+                >
+                    Edit Profile
+                </SecondaryButton> */}
                 <button
                     onClick={() => onNewSale(customer)}
                     className="flex-1 py-4 bg-slate-900 dark:bg-slate-800 text-white rounded-2xl font-bold shadow-lg hover:scale-[1.02] active:scale-95 transition-all"

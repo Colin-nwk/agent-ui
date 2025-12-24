@@ -27,10 +27,10 @@ export const CustomerCard: React.FC<CustomerCardProps> = ({ customer, onClick })
                     <img
                         src={customer.image}
                         alt={`${customer.firstname} ${customer.lastname}`}
-                        className="w-12 h-12 rounded-full object-cover border-2 border-slate-100 dark:border-slate-700"
+                        className="w-14 h-14 rounded-full object-cover border-2 border-slate-100 dark:border-slate-700 shadow-sm"
                     />
                 ) : (
-                    <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-primary/5 dark:from-primary/30 dark:to-primary/10 rounded-full flex items-center justify-center text-primary font-bold text-lg">
+                    <div className="w-14 h-14 bg-gradient-to-br from-primary/20 to-primary/5 dark:from-primary/30 dark:to-primary/10 rounded-full flex items-center justify-center text-primary font-bold text-xl shadow-sm">
                         {customer.firstname?.charAt(0) || 'C'}
                     </div>
                 )}
