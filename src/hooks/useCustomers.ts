@@ -1,76 +1,32 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
+import { createCrudHooks } from '../lib/hooks-factory';
 import { customerService } from '../services/customer';
 import type { 
+  Customer, 
   CreateCustomerDto, 
   UpdateCustomerDto, 
-  ListCustomersQuery 
+  ListCustomersQuery,
+  CustomerStats 
 } from '../types/customer';
 
-export const customerKeys = {
-  all: ['customers'] as const,
-  lists: () => [...customerKeys.all, 'list'] as const,
-  list: (query?: ListCustomersQuery) => [...customerKeys.lists(), query] as const,
-  details: () => [...customerKeys.all, 'detail'] as const,
-  detail: (id: string) => [...customerKeys.details(), id] as const,
-  stats: () => [...customerKeys.all, 'stats'] as const,
-};
+// Generate all standard CRUD hooks from factory
+const customerHooks = createCrudHooks<Customer, CreateCustomerDto, UpdateCustomerDto, ListCustomersQuery>(
+  'customers',
+  customerService
+);
 
-export function useCustomers(query?: ListCustomersQuery) {
-  return useQuery({
-    queryKey: customerKeys.list(query),
-    queryFn: () => customerService.list(query),
-  });
-}
+// Export standard CRUD hooks with clearer names
+export const customerKeys = customerHooks.queryKeys;
+export const useCustomers = customerHooks.useList;
+export const useCustomer = customerHooks.useDetail;
+export const useCreateCustomer = customerHooks.useCreate;
+export const useUpdateCustomer = customerHooks.useUpdate;
+export const useDeleteCustomer = customerHooks.useDelete;
 
-export function useCustomer(id: string) {
-  return useQuery({
-    queryKey: customerKeys.detail(id),
-    queryFn: () => customerService.getById(id),
-    enabled: !!id,
-  });
-}
-
+// Custom hook for stats (not part of standard CRUD)
 export function useCustomerStats() {
   return useQuery({
-    queryKey: customerKeys.stats(),
+    queryKey: [...customerKeys.all, 'stats'] as const,
     queryFn: () => customerService.getStats(),
-  });
-}
-
-export function useCreateCustomer() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ dto, image }: { dto: CreateCustomerDto; image?: File }) => 
-      customerService.create(dto, image),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: customerKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: customerKeys.stats() });
-    },
-  });
-}
-
-export function useUpdateCustomer() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ id, dto, image }: { id: string; dto: UpdateCustomerDto; image?: File }) =>
-      customerService.update(id, dto, image),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: customerKeys.detail(variables.id) });
-      queryClient.invalidateQueries({ queryKey: customerKeys.lists() });
-    },
-  });
-}
-
-export function useDeleteCustomer() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (id: string) => customerService.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: customerKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: customerKeys.stats() });
-    },
   });
 }
