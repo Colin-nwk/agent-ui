@@ -63,6 +63,24 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
             if (initialData.image) {
                 setImagePreview(initialData.image);
             }
+        } else {
+            // Reset form for create mode
+            setFormData({
+                firstname: '',
+                lastname: '',
+                phone: '',
+                alternatePhone: '',
+                email: '',
+                location: '',
+                longitude: '',
+                latitude: '',
+                landmark: '',
+                addressType: 'HOME',
+                type: 'lead',
+            });
+            setSelectedImage(null);
+            setImagePreview(null);
+            if (fileInputRef.current) fileInputRef.current.value = '';
         }
     }, [initialData]);
 
