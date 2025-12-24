@@ -63,9 +63,9 @@ const Customers: React.FC = () => {
       }
    };
 
-   const customers = data?.data || [];
-   const meta = data?.meta;
-   const totalPages = meta?.totalPages || 1;
+   const customers = data?.customers || [];
+   const totalPages = data?.totalPages || 1;
+   const total = data?.total || 0;
 
    const getStatusColor = (status: string) => {
       switch (status) {
@@ -188,13 +188,12 @@ const Customers: React.FC = () => {
             </div>
          )}
 
-         {/* Pagination */}
-         {meta && totalPages > 1 && (
+         {data && totalPages > 1 && (
             <div className="flex items-center justify-between bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
                <p className="text-sm text-slate-500 dark:text-slate-400">
                   Showing <span className="font-bold text-slate-900 dark:text-white">{((page - 1) * ITEMS_PER_PAGE) + 1}</span> to{' '}
-                  <span className="font-bold text-slate-900 dark:text-white">{Math.min(page * ITEMS_PER_PAGE, meta.total)}</span> of{' '}
-                  <span className="font-bold text-slate-900 dark:text-white">{meta.total}</span> customers
+                  <span className="font-bold text-slate-900 dark:text-white">{Math.min(page * ITEMS_PER_PAGE, total)}</span> of{' '}
+                  <span className="font-bold text-slate-900 dark:text-white">{total}</span> customers
                </p>
                <div className="flex items-center space-x-2">
                   <button

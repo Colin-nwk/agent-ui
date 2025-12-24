@@ -46,14 +46,13 @@ export interface ListCustomersQuery {
   type?: CustomerType;
 }
 
-export interface PaginatedResponse<T> {
-  data: T[];
-  meta: {
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  };
+// API returns { customers: [...], total, pageNumber, limitNumber, totalPages }
+export interface CustomerListResponse {
+  customers: Customer[];
+  total: number;
+  pageNumber: number;
+  limitNumber: number;
+  totalPages: number;
 }
 
 export interface CustomerStats {

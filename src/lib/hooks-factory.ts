@@ -19,19 +19,25 @@ function createQueryKeys(resourceName: string): QueryKeysConfig {
   };
 }
 
-export interface CrudHooks<T, CreateDto, UpdateDto, QueryParams> {
+export interface CrudHooks<T, CreateDto, UpdateDto, QueryParams, ListKey extends string = 'data'> {
   queryKeys: QueryKeysConfig;
-  useList: (query?: QueryParams) => ReturnType<typeof useQuery<PaginatedResponse<T>>>;
+  useList: (query?: QueryParams) => ReturnType<typeof useQuery<PaginatedResponse<T, ListKey>>>;
   useDetail: (id: string) => ReturnType<typeof useQuery<T>>;
   useCreate: () => ReturnType<typeof useMutation<T, Error, { dto: CreateDto; file?: File }>>;
   useUpdate: () => ReturnType<typeof useMutation<T, Error, { id: string; dto: UpdateDto; file?: File }>>;
   useDelete: () => ReturnType<typeof useMutation<void, Error, string>>;
 }
 
-export function createCrudHooks<T, CreateDto, UpdateDto, QueryParams = Record<string, any>>(
+export function createCrudHooks<
+  T, 
+  CreateDto, 
+  UpdateDto, 
+  QueryParams = Record<string, any>,
+  ListKey extends string = 'data'
+>(
   resourceName: string,
-  service: CrudService<T, CreateDto, UpdateDto, QueryParams>
-): CrudHooks<T, CreateDto, UpdateDto, QueryParams> {
+  service: CrudService<T, CreateDto, UpdateDto, QueryParams, ListKey>
+): CrudHooks<T, CreateDto, UpdateDto, QueryParams, ListKey> {
   const queryKeys = createQueryKeys(resourceName);
 
   return {

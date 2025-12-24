@@ -10,7 +10,14 @@ import type {
 } from '../types/customer';
 
 // Generate all standard CRUD hooks from factory
-const customerHooks = createCrudHooks<Customer, CreateCustomerDto, UpdateCustomerDto, ListCustomersQuery>(
+// Note: 'customers' is the key used in the API response
+const customerHooks = createCrudHooks<
+  Customer, 
+  CreateCustomerDto, 
+  UpdateCustomerDto, 
+  ListCustomersQuery,
+  'customers'  // <-- This is the list key from API response
+>(
   'customers',
   customerService
 );

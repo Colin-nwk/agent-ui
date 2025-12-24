@@ -1,18 +1,19 @@
 import { api } from './axios';
 
-export interface PaginatedResponse<T> {
-  data: T[];
-  meta: {
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  };
-}
+// Generic paginated response with customizable data key
+// Usage: PaginatedResponse<Customer, 'customers'> => { customers: Customer[], total, ... }
+export type PaginatedResponse<T, K extends string = 'data'> = {
+  [key in K]: T[];
+} & {
+  total: number;
+  pageNumber: number;
+  limitNumber: number;
+  totalPages: number;
+};
 
-export interface CrudService<T, CreateDto, UpdateDto, QueryParams = Record<string, any>> {
+export interface CrudService<T, CreateDto, UpdateDto, QueryParams = Record<string, any>, ListKey extends string = 'data'> {
   create(dto: CreateDto, file?: File): Promise<T>;
-  list(query?: QueryParams): Promise<PaginatedResponse<T>>;
+  list(query?: QueryParams): Promise<PaginatedResponse<T, ListKey>>;
   getById(id: string): Promise<T>;
   update(id: string, dto: UpdateDto, file?: File): Promise<T>;
   delete(id: string): Promise<void>;
@@ -20,12 +21,19 @@ export interface CrudService<T, CreateDto, UpdateDto, QueryParams = Record<strin
 
 interface ServiceConfig {
   baseUrl: string;
-  fileFieldName?: string; // e.g., 'customerImage', 'image', etc.
+  fileFieldName?: string;
+  listKey?: string; // The key name for the array in list response (e.g., 'customers', 'inventory')
 }
 
-export function createCrudService<T, CreateDto, UpdateDto, QueryParams = Record<string, any>>(
-  config: ServiceConfig
-): CrudService<T, CreateDto, UpdateDto, QueryParams> {
+export function createCrudService<
+  T, 
+  CreateDto, 
+  UpdateDto, 
+  QueryParams = Record<string, any>,
+  ListKey extends string = 'data'
+>(
+  config: ServiceConfig & { listKey?: ListKey }
+): CrudService<T, CreateDto, UpdateDto, QueryParams, ListKey> {
   const { baseUrl, fileFieldName = 'image' } = config;
 
   return {
@@ -44,8 +52,8 @@ export function createCrudService<T, CreateDto, UpdateDto, QueryParams = Record<
       return data;
     },
 
-    async list(query?: QueryParams): Promise<PaginatedResponse<T>> {
-      const { data } = await api.get<PaginatedResponse<T>>(baseUrl, { params: query });
+    async list(query?: QueryParams): Promise<PaginatedResponse<T, ListKey>> {
+      const { data } = await api.get<PaginatedResponse<T, ListKey>>(baseUrl, { params: query });
       return data;
     },
 
@@ -76,10 +84,17 @@ export function createCrudService<T, CreateDto, UpdateDto, QueryParams = Record<
 }
 
 // Helper for services that need custom methods beyond CRUD
-export function extendService<T, CreateDto, UpdateDto, QueryParams, Extensions>(
-  config: ServiceConfig,
-  extensions: (baseService: CrudService<T, CreateDto, UpdateDto, QueryParams>) => Extensions
-): CrudService<T, CreateDto, UpdateDto, QueryParams> & Extensions {
-  const baseService = createCrudService<T, CreateDto, UpdateDto, QueryParams>(config);
+export function extendService<
+  T, 
+  CreateDto, 
+  UpdateDto, 
+  QueryParams, 
+  Extensions,
+  ListKey extends string = 'data'
+>(
+  config: ServiceConfig & { listKey?: ListKey },
+  extensions: (baseService: CrudService<T, CreateDto, UpdateDto, QueryParams, ListKey>) => Extensions
+): CrudService<T, CreateDto, UpdateDto, QueryParams, ListKey> & Extensions {
+  const baseService = createCrudService<T, CreateDto, UpdateDto, QueryParams, ListKey>(config);
   return { ...baseService, ...extensions(baseService) };
 }
