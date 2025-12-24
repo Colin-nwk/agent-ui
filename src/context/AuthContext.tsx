@@ -1,12 +1,13 @@
 import { createContext, useContext, ReactNode } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { authService, User } from '../services/auth';
+import { authService } from '../services/auth';
+import { User, LoginParams } from '../types/auth';
 
 interface AuthContextType {
     isAuthenticated: boolean;
     user: User | null;
-    login: (params: { phone: string; otp: string }) => Promise<void>;
-    requestOtp: (phone: string) => Promise<void>;
+    login: (params: LoginParams) => Promise<void>;
+    requestOtp: (phoneNumber: string) => Promise<void>;
     logout: () => void;
     isLoading: boolean;
 }
@@ -34,7 +35,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const { data: user, isLoading: isUserLoading } = useQuery({
         queryKey: ['auth', 'user'],
         queryFn: authService.getCurrentUser,
-        enabled: !!token, // Only fetch if we have a token
+        enabled: !!token,
         retry: false,
     });
 
@@ -43,12 +44,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     });
 
     const loginMutation = useMutation({
-        mutationFn: ({ phone, otp }: { phone: string; otp: string }) =>
-            authService.verifyOtp(phone, otp),
+        mutationFn: (params: LoginParams) =>
+            authService.verifyOtp(params),
         onSuccess: (data) => {
-            localStorage.setItem('agent_token', data.token);
+            localStorage.setItem('agent_token', data.access_token);
             localStorage.setItem('agent_auth', 'true');
-            queryClient.setQueryData(['auth', 'user'], data.user);
+            queryClient.setQueryData(['auth', 'user'], data.agent);
         },
     });
 
@@ -66,7 +67,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
                 isAuthenticated,
                 user: user || null,
                 login: async (params) => { await loginMutation.mutateAsync(params); },
-                requestOtp: async (phone) => { await otpMutation.mutateAsync(phone); },
+                requestOtp: async (phoneNumber) => { await otpMutation.mutateAsync(phoneNumber); },
                 logout,
                 isLoading: isUserLoading || loginMutation.isPending || otpMutation.isPending
             }}

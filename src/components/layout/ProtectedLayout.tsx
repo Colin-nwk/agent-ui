@@ -50,7 +50,7 @@ export const ProtectedLayout = ({ children }: ProtectedLayoutProps) => {
 
             <Sidebar
                 navItems={NAV_ITEMS}
-                user={user || { name: 'User', id: '0000' }}
+                user={user}
                 onLogout={logout}
             />
 

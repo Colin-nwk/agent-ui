@@ -1,65 +1,23 @@
 import { api } from '../lib/axios';
-
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  role: string;
-}
-
-export interface AuthResponse {
-  token: string;
-  user: User;
-}
+import { AuthResponse, User, LoginParams } from '../types/auth';
 
 export const authService = {
-  requestOtp: async (phone: string): Promise<void> => {
-    // In dev mode, we might want to just simulate success
-    // return api.post('/auth/otp', { phone });
-    
-    // For now, let's keep the simulation for dev until backend is ready
-    // Remove this timeout and uncomment above line when API is real
-    return new Promise((resolve) => setTimeout(resolve, 1000));
+  requestOtp: async (phoneNumber: string): Promise<{ message: string }> => {
+    const { data } = await api.post('/agent-portal/auth/request-otp', { phoneNumber });
+    return data;
   },
 
-  verifyOtp: async (phone: string, otp: string): Promise<AuthResponse> => {
-    // Real API call would be:
-    // const { data } = await api.post<AuthResponse>('/auth/login', { phone, otp });
-    // return data;
-
-    // Simulate response for dev
-    return new Promise((resolve) => 
-      setTimeout(() => 
-        resolve({
-          token: 'mock-jwt-token-' + Date.now(),
-          user: {
-            id: '8821',
-            name: 'Collins Nwoko',
-            email: 'collins@ubuxa.com',
-            phone,
-            role: 'AGENT'
-          }
-        }), 1000)
-    );
+  verifyOtp: async (params: LoginParams): Promise<AuthResponse> => {
+    const { data } = await api.post<AuthResponse>('/agent-portal/auth/verify-otp', params);
+    return data;
   },
 
   getCurrentUser: async (): Promise<User> => {
-    // const { data } = await api.get<User>('/auth/me');
-    // return data;
-    
-    // Simulate user
-    return {
-      id: '8821',
-      name: 'Collins Nwoko',
-      email: 'collins@ubuxa.com',
-      phone: '+2348012345678',
-      role: 'AGENT'
-    };
+    const { data } = await api.get<User>('/agent-portal/auth/profile');
+    return data;
   },
 
   logout: async (): Promise<void> => {
-    // await api.post('/auth/logout');
     localStorage.removeItem('agent_token');
     localStorage.removeItem('agent_auth');
   }

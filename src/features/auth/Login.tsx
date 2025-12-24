@@ -29,7 +29,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await login({ phone, otp });
+      await login({ phoneNumber: phone, otp });
       onLogin(); // Redirect happens via parent re-render or this callback
     } catch (error) {
       console.error('Login failed', error);
