@@ -13,6 +13,8 @@ export { CameraCapture } from './CameraCapture';
 export { Modal, SideDrawer, BottomSheetModal } from './Modal';
 export { Toast } from './Toast';
 export { DropdownMenu } from './DropdownMenu';
+export { default as CameraModal } from './CameraModal';
+export { default as LocationPicker } from './LocationPicker';
 
 // Navigation & Layout
 export { Tabs } from './Tabs';

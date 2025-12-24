@@ -28,12 +28,14 @@ export interface CreateCustomerDto {
   lastname: string;
   email: string;
   phone: string;
+  alternatePhone?: string;
   addressType: AddressType;
   location: string;
   longitude?: string;
   latitude?: string;
   landmark?: string;
   status?: UserStatus;
+  type?: CustomerType;
 }
 
 export interface UpdateCustomerDto extends Partial<CreateCustomerDto> {}
