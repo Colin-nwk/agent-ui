@@ -1,5 +1,5 @@
 import { InputHTMLAttributes, SelectHTMLAttributes, ReactNode } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Search, Loader2 } from 'lucide-react';
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
     label?: string;
@@ -39,3 +39,21 @@ export const Select = ({ label, children, className, ...props }: SelectProps) =>
         </div>
     </div>
 );
+// ... existing code ...
+interface SearchInputProps extends InputHTMLAttributes<HTMLInputElement> {
+    isLoading?: boolean;
+}
+
+export const SearchInput = ({ isLoading, className, ...props }: SearchInputProps) => {
+    return (
+        <div className={`bg-white dark:bg-slate-900 p-2 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex items-center space-x-2 group focus-within:border-primary transition-colors ${className}`}>
+            <Search className="text-slate-400 ml-2 group-focus-within:text-primary transition-colors" size={20} />
+            <input
+                type="text"
+                className="flex-1 py-2 outline-none text-sm text-slate-900 dark:text-white bg-transparent placeholder:text-slate-400"
+                {...props}
+            />
+            {isLoading && <Loader2 size={18} className="animate-spin text-primary mr-2" />}
+        </div>
+    );
+};

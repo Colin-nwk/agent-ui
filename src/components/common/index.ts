@@ -2,7 +2,7 @@
 export { PrimaryButton, SecondaryButton, OutlineButton, DangerButton, GhostButton, IconButton } from './Button';
 
 // Form Controls
-export { Input, Select } from './Input';
+export { Input, Select, SearchInput } from './Input';
 export { Checkbox, Switch } from './Checkbox';
 export { FileUpload } from './FileUpload';
 export { MultiSelect } from './MultiSelect';

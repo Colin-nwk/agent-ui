@@ -3,7 +3,7 @@ import {
    Search, UserPlus, Users, AlertCircle, Loader2, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import {
-   PrimaryButton, SecondaryButton, IconButton, BottomSheetModal, StatCard
+   PrimaryButton, SecondaryButton, IconButton, BottomSheetModal, StatCard, SearchInput
 } from '../../components/common';
 import { useCustomers, useCreateCustomer, useUpdateCustomer, useCustomerStats } from '../../hooks/useCustomers';
 import { useToast } from '../../context';
@@ -145,17 +145,12 @@ const Customers: React.FC = () => {
          )}
 
          {/* Search */}
-         <div className="bg-white dark:bg-slate-900 p-2 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex items-center space-x-2 group focus-within:border-primary transition-colors">
-            <Search className="text-slate-400 ml-2 group-focus-within:text-primary" size={20} />
-            <input
-               type="text"
-               placeholder="Search by name, phone or email..."
-               className="flex-1 py-2 outline-none text-sm text-slate-900 dark:text-white bg-transparent placeholder:text-slate-400"
-               value={search}
-               onChange={(e) => setSearch(e.target.value)}
-            />
-            {isLoading && <Loader2 size={18} className="animate-spin text-primary mr-2" />}
-         </div>
+         <SearchInput
+            placeholder="Search by name, phone or email..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            isLoading={isLoading}
+         />
 
          {/* Error State */}
          {error && (
