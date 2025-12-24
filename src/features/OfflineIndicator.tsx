@@ -108,18 +108,18 @@ const OfflineIndicator = () => {
   };
 
   return (
-    <div className={`fixed top-3 left-1/2 -translate-x-1/2 z-[200] flex items-center space-x-2 sm:space-x-3 px-3 py-2 sm:px-4 sm:py-2.5 rounded-full shadow-lg transition-all duration-300 ${!isOnline
-        ? 'bg-red-600 text-white'
-        : isSyncing
-          ? 'bg-blue-600 text-white'
-          : 'bg-white/95 dark:bg-slate-800/95 backdrop-blur-md text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700'
+    <div className={`fixed top-20 right-4 lg:top-auto lg:right-6 lg:bottom-6 z-[200] flex items-center space-x-2 sm:space-x-3 px-3 py-2 sm:px-4 sm:py-2.5 rounded-full shadow-lg transition-all duration-300 ${!isOnline
+      ? 'bg-red-600 text-white'
+      : isSyncing
+        ? 'bg-blue-600 text-white'
+        : 'bg-white/95 dark:bg-slate-800/95 backdrop-blur-md text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700'
       }`}>
       {/* Status Icon */}
       <div className={`p-1.5 rounded-full ${!isOnline
+        ? 'bg-white/20'
+        : isSyncing
           ? 'bg-white/20'
-          : isSyncing
-            ? 'bg-white/20'
-            : 'bg-green-500/10'
+          : 'bg-green-500/10'
         }`}>
         {!isOnline ? (
           <WifiOff size={14} />
@@ -152,8 +152,8 @@ const OfflineIndicator = () => {
         <button
           onClick={handleManualSync}
           className={`p-1.5 rounded-full transition-colors ${!isOnline
-              ? 'bg-white/20 hover:bg-white/30'
-              : 'bg-blue-500/10 hover:bg-blue-500/20 text-blue-600'
+            ? 'bg-white/20 hover:bg-white/30'
+            : 'bg-blue-500/10 hover:bg-blue-500/20 text-blue-600'
             }`}
           title="Sync now"
         >
