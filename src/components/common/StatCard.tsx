@@ -3,7 +3,7 @@ import { MoreVertical, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 
 interface StatCardProps {
     title: string;
-    value: string;
+    value: string | number;
     icon: ReactNode;
     trend?: string;
     positive?: boolean;

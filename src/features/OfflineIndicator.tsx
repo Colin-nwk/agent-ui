@@ -12,7 +12,7 @@ const OfflineIndicator = () => {
   const checkConnectivity = useCallback(async () => {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
 
       // Use a simple fetch to check connectivity
       const response = await fetch('https://httpbin.org/get', {
