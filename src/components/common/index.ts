@@ -1,5 +1,5 @@
 // Buttons
-export { PrimaryButton, SecondaryButton } from './Button';
+export { PrimaryButton, SecondaryButton, OutlineButton, DangerButton, GhostButton, IconButton } from './Button';
 
 // Form Controls
 export { Input, Select } from './Input';
