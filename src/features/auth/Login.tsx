@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Smartphone, Lock, ChevronRight, Moon, Sun } from 'lucide-react';
 import { useTheme } from '../../context';
+import { PrimaryButton, SecondaryButton } from '../../components/common';
 
 interface LoginProps {
   onLogin: () => void;
@@ -71,14 +72,14 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 />
               </div>
 
-              <button
+              <SecondaryButton
                 type="submit"
                 disabled={loading}
-                className="w-full bg-slate-900 dark:bg-slate-800 text-white py-4 sm:py-5 rounded-xl sm:rounded-[1.25rem] font-bold flex items-center justify-center space-x-3 hover:bg-slate-800 dark:hover:bg-slate-700 transition-all shadow-xl disabled:opacity-50 active:scale-95"
+                className="w-full"
+                icon={!loading ? <ChevronRight size={20} /> : undefined}
               >
-                <span className="text-base sm:text-lg">{loading ? "Synchronizing..." : "Request Token"}</span>
-                {!loading && <ChevronRight size={20} />}
-              </button>
+                {loading ? "Synchronizing..." : "Request Token"}
+              </SecondaryButton>
             </form>
           ) : (
             <form onSubmit={handleVerifyOtp} className="space-y-4 sm:space-y-6">
@@ -100,13 +101,13 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 />
               </div>
 
-              <button
+              <PrimaryButton
                 type="submit"
                 disabled={loading}
-                className="w-full bg-ubuxa-gradient text-white py-4 sm:py-5 rounded-xl sm:rounded-[1.25rem] font-bold text-base sm:text-lg hover:shadow-2xl hover:shadow-ubuxa-blue/20 transition-all disabled:opacity-50 active:scale-95 shadow-xl"
+                className="w-full"
               >
                 {loading ? "Authenticating..." : "Authorize Login"}
-              </button>
+              </PrimaryButton>
 
               <button
                 type="button"
