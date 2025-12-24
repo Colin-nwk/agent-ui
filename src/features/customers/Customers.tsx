@@ -6,7 +6,7 @@ import {
 import {
    PrimaryButton, SecondaryButton, BottomSheetModal, Input, Select, StatCard, CameraModal, LocationPicker
 } from '../../components/common';
-import { useCustomers, useCreateCustomer, useCustomerStats } from '../../hooks/useCustomers';
+import { useCustomers, useCreateCustomer, useUpdateCustomer, useCustomerStats } from '../../hooks/useCustomers';
 import { useToast } from '../../context';
 import type { Customer, CreateCustomerDto, AddressType, CustomerType } from '../../types/customer';
 
@@ -23,6 +23,8 @@ const Customers: React.FC = () => {
    // Modal State
    const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
    const [isAddCustomerOpen, setIsAddCustomerOpen] = useState(false);
+   const [isEditMode, setIsEditMode] = useState(false);
+   const [editingCustomerId, setEditingCustomerId] = useState<string | null>(null);
 
    // Form State
    const [formData, setFormData] = useState<Partial<CreateCustomerDto>>({
@@ -55,6 +57,7 @@ const Customers: React.FC = () => {
    });
    const { data: stats } = useCustomerStats();
    const createMutation = useCreateCustomer();
+   const updateMutation = useUpdateCustomer();
 
    // Debounce search
    React.useEffect(() => {
@@ -98,20 +101,20 @@ const Customers: React.FC = () => {
       setImagePreview(URL.createObjectURL(file));
    };
 
-   const handleCreateCustomer = async () => {
-      try {
-         await createMutation.mutateAsync({
-            dto: formData as CreateCustomerDto,
-            file: selectedImage || undefined
-         });
-         showToast('Success', 'Customer created successfully', 'success');
-         setIsAddCustomerOpen(false);
-         setFormData({ firstname: '', lastname: '', phone: '', email: '', location: '', addressType: 'HOME' });
-         handleRemoveImage();
-      } catch (err: any) {
-         showToast('Error', err?.response?.data?.message || 'Failed to create customer', 'error');
-      }
-   };
+   // const handleCreateCustomer = async () => {
+   //    try {
+   //       await createMutation.mutateAsync({
+   //          dto: formData as CreateCustomerDto,
+   //          file: selectedImage || undefined
+   //       });
+   //       showToast('Success', 'Customer created successfully', 'success');
+   //       setIsAddCustomerOpen(false);
+   //       setFormData({ firstname: '', lastname: '', phone: '', email: '', location: '', addressType: 'HOME' });
+   //       handleRemoveImage();
+   //    } catch (err: any) {
+   //       showToast('Error', err?.response?.data?.message || 'Failed to create customer', 'error');
+   //    }
+   // };
 
    const resetForm = () => {
       setFormData({
@@ -120,6 +123,54 @@ const Customers: React.FC = () => {
          landmark: '', addressType: 'HOME', type: 'lead'
       });
       handleRemoveImage();
+      setIsEditMode(false);
+      setEditingCustomerId(null);
+   };
+
+   const openEditModal = (customer: Customer) => {
+      setFormData({
+         firstname: customer.firstname,
+         lastname: customer.lastname,
+         phone: customer.phone,
+         alternatePhone: customer.alternatePhone || '',
+         email: customer.email || '',
+         location: customer.location || '',
+         longitude: customer.longitude || '',
+         latitude: customer.latitude || '',
+         landmark: customer.landmark || '',
+         addressType: customer.addressType,
+         type: customer.type,
+      });
+      if (customer.image) {
+         setImagePreview(customer.image);
+      }
+      setEditingCustomerId(customer.id);
+      setIsEditMode(true);
+      setIsAddCustomerOpen(true);
+      setSelectedCustomer(null);
+   };
+
+   const handleSaveCustomer = async () => {
+      try {
+         if (isEditMode && editingCustomerId) {
+            await updateMutation.mutateAsync({
+               id: editingCustomerId,
+               dto: formData as CreateCustomerDto,
+               file: selectedImage || undefined
+            });
+            showToast('Success', 'Customer updated successfully', 'success');
+         } else {
+            await createMutation.mutateAsync({
+               dto: formData as CreateCustomerDto,
+               file: selectedImage || undefined
+            });
+            showToast('Success', 'Customer created successfully', 'success');
+         }
+         setIsAddCustomerOpen(false);
+         resetForm();
+      } catch (err: any) {
+         showToast('Error', err?.response?.data?.message || `Failed to ${isEditMode ? 'update' : 'create'} customer`, 'error');
+      }
    };
 
    const handleLocationSelect = (location: { address: string; lat: string; lng: string }) => {
@@ -355,8 +406,11 @@ const Customers: React.FC = () => {
                   </div>
 
                   <div className="flex space-x-3 pt-2">
-                     <button className="flex-1 py-4 border border-slate-200 dark:border-slate-700 rounded-2xl font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-                        History
+                     <button
+                        onClick={() => openEditModal(selectedCustomer)}
+                        className="flex-1 py-4 border border-slate-200 dark:border-slate-700 rounded-2xl font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                     >
+                        Edit
                      </button>
                      <button className="flex-1 py-4 bg-slate-900 dark:bg-slate-800 text-white rounded-2xl font-bold shadow-lg hover:scale-[1.02] transition-transform">
                         New Sale
@@ -366,11 +420,11 @@ const Customers: React.FC = () => {
             )}
          </BottomSheetModal>
 
-         {/* Create Customer Modal */}
+         {/* Create/Edit Customer Modal */}
          <BottomSheetModal
             isOpen={isAddCustomerOpen}
             onClose={() => { setIsAddCustomerOpen(false); resetForm(); }}
-            title="Register Customer"
+            title={isEditMode ? 'Edit Customer' : 'Register Customer'}
          >
             <div className="space-y-6">
                <div className="bg-blue-50 dark:bg-blue-900/10 p-4 rounded-2xl mb-2">
@@ -534,13 +588,13 @@ const Customers: React.FC = () => {
                <div className="pt-4">
                   <PrimaryButton
                      className="w-full"
-                     onClick={handleCreateCustomer}
-                     disabled={createMutation.isPending || !formData.firstname || !formData.lastname || !formData.phone || !formData.email || !formData.location}
+                     onClick={handleSaveCustomer}
+                     disabled={(isEditMode ? updateMutation.isPending : createMutation.isPending) || !formData.firstname || !formData.lastname || !formData.phone || !formData.email || !formData.location}
                   >
-                     {createMutation.isPending ? (
-                        <><Loader2 size={18} className="animate-spin mr-2 inline-flex" /> Creating...</>
+                     {(isEditMode ? updateMutation.isPending : createMutation.isPending) ? (
+                        <><Loader2 size={18} className="animate-spin mr-2 inline-flex" /> {isEditMode ? 'Updating...' : 'Creating...'}</>
                      ) : (
-                        <>Create Customer <ChevronRight size={20} className="ml-1 inline-flex" /></>
+                        <>{isEditMode ? 'Update Customer' : 'Create Customer'} <ChevronRight size={20} className="ml-1 inline-flex" /></>
                      )}
                   </PrimaryButton>
                </div>
