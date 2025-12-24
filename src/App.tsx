@@ -33,7 +33,7 @@ const AppRoutes = () => {
       {/* Public Routes */}
       <Route
         path="/login"
-        element={isAuthenticated ? <Navigate to="/" replace /> : <Login onLogin={login} />}
+        element={isAuthenticated ? <Navigate to="/" replace /> : <Login onLogin={() => { }} />}
       />
 
       {/* Protected Routes */}

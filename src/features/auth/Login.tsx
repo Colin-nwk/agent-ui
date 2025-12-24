@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Smartphone, Lock, ChevronRight, Moon, Sun } from 'lucide-react';
-import { useTheme } from '../../context';
+import { useTheme, useAuth } from '../../context';
 import { PrimaryButton, SecondaryButton } from '../../components/common';
 
 interface LoginProps {
@@ -10,29 +10,31 @@ interface LoginProps {
 
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const { theme, toggleTheme } = useTheme();
+  const { login, requestOtp, isLoading } = useAuth();
   const [step, setStep] = useState<'phone' | 'otp'>('phone');
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
-  const [loading, setLoading] = useState(false);
 
-  const handleRequestOtp = (e: React.FormEvent) => {
+  const handleRequestOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      await requestOtp(phone);
       setStep('otp');
-      setLoading(false);
-    }, 1000);
+    } catch (error) {
+      console.error('Failed to request OTP', error);
+      // Ideally show toast error here
+    }
   };
 
-  const handleVerifyOtp = (e: React.FormEvent) => {
+  const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setTimeout(() => {
-      localStorage.setItem('agent_auth', 'true');
-      onLogin();
-      setLoading(false);
-    }, 1000);
+    try {
+      await login({ phone, otp });
+      onLogin(); // Redirect happens via parent re-render or this callback
+    } catch (error) {
+      console.error('Login failed', error);
+      // Ideally show toast error here
+    }
   };
 
   return (
@@ -74,11 +76,11 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
               <SecondaryButton
                 type="submit"
-                disabled={loading}
+                disabled={isLoading}
                 className="w-full"
-                icon={!loading ? <ChevronRight size={20} /> : undefined}
+                icon={!isLoading ? <ChevronRight size={20} /> : undefined}
               >
-                {loading ? "Synchronizing..." : "Request Token"}
+                {isLoading ? "Synchronizing..." : "Request Token"}
               </SecondaryButton>
             </form>
           ) : (
@@ -103,10 +105,10 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
               <PrimaryButton
                 type="submit"
-                disabled={loading}
+                disabled={isLoading}
                 className="w-full"
               >
-                {loading ? "Authenticating..." : "Authorize Login"}
+                {isLoading ? "Authenticating..." : "Authorize Login"}
               </PrimaryButton>
 
               <button
