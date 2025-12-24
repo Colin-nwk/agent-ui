@@ -12,7 +12,7 @@ const OfflineIndicator = () => {
   const checkConnectivity = useCallback(async () => {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000);
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
 
       // Use a simple fetch to check connectivity
       const response = await fetch('https://httpbin.org/get', {
@@ -76,7 +76,7 @@ const OfflineIndicator = () => {
     // Periodic connectivity check every 10 seconds
     const connectivityInterval = setInterval(() => {
       checkConnectivity();
-    }, 10000);
+    }, 30000);
 
     // Periodic sync check
     const syncInterval = setInterval(() => {
@@ -86,7 +86,7 @@ const OfflineIndicator = () => {
           if (count > 0 && !isSyncing) syncData();
         });
       }
-    }, 15000);
+    }, 35000);
 
     return () => {
       window.removeEventListener('online', handleOnline);

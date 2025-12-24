@@ -17,7 +17,7 @@ export const customerService = extendService<
   { getStats(): Promise<CustomerStats> },
   'customers'  // <-- List key matching API response
 >(
-  { baseUrl: '/agent-portal/customers', fileFieldName: 'customerImage', listKey: 'customers' },
+  { baseUrl: '/agent-portal/customers', fileFieldName: 'image', listKey: 'customers' },
   () => ({
     async getStats(): Promise<CustomerStats> {
       const { data } = await api.get<CustomerStats>('/agent-portal/customers/stats');
