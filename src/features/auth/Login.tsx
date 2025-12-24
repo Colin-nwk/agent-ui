@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Smartphone, Lock, ChevronRight, Moon, Sun } from 'lucide-react';
-import { useTheme, useAuth } from '../../context';
+import { useTheme, useAuth, useToast } from '../../context';
 import { PrimaryButton, SecondaryButton } from '../../components/common';
 
 interface LoginProps {
@@ -11,6 +11,7 @@ interface LoginProps {
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const { theme, toggleTheme } = useTheme();
   const { login, requestOtp, isLoading } = useAuth();
+  const { showToast } = useToast();
   const [step, setStep] = useState<'phone' | 'otp'>('phone');
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
@@ -20,9 +21,9 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     try {
       await requestOtp(phone);
       setStep('otp');
-    } catch (error) {
-      console.error('Failed to request OTP', error);
-      // Ideally show toast error here
+    } catch (error: any) {
+      const message = error?.response?.data?.message || error?.message || 'Failed to send OTP. Please try again.';
+      showToast('Request Failed', message, 'error');
     }
   };
 
@@ -31,9 +32,9 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     try {
       await login({ phoneNumber: phone, otp });
       onLogin(); // Redirect happens via parent re-render or this callback
-    } catch (error) {
-      console.error('Login failed', error);
-      // Ideally show toast error here
+    } catch (error: any) {
+      const message = error?.response?.data?.message || error?.message || 'Login failed. Please check your OTP and try again.';
+      showToast('Login Failed', message, 'error');
     }
   };
 
