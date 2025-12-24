@@ -1,7 +1,7 @@
 import React from 'react';
 import { Phone, MapPin, Mail } from 'lucide-react';
 import { Customer } from '../../../types/customer';
-import { SecondaryButton } from '../../../components/common';
+import { OutlineButton, PrimaryButton, Input } from '../../../components/common';
 
 interface CustomerDetailsProps {
     customer: Customer;
@@ -63,47 +63,52 @@ export const CustomerDetails: React.FC<CustomerDetailsProps> = ({ customer, onEd
                 </div>
             </div>
 
-            <div className="space-y-3">
-                <div className="flex items-center space-x-4 p-4 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl shadow-sm">
-                    <div className="p-2.5 bg-blue-50 dark:bg-blue-900/20 rounded-xl text-primary"><Phone size={20} /></div>
-                    <div>
-                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Phone Number</p>
-                        <p className="font-bold text-slate-900 dark:text-white">{customer.phone}</p>
-                        {customer.alternatePhone && (
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{customer.alternatePhone}</p>
-                        )}
-                    </div>
-                </div>
+            <div className="space-y-4">
+                <Input
+                    value={customer.phone}
+                    label="Phone Number"
+                    icon={<Phone size={18} />}
+                    disabled
+                    readOnly
+                    className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
+                />
+
+                {customer.alternatePhone && (
+                    <Input
+                        value={customer.alternatePhone}
+                        label="Alternate Phone"
+                        icon={<Phone size={18} />}
+                        disabled
+                        readOnly
+                        className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
+                    />
+                )}
+
                 {customer.email && (
-                    <div className="flex items-center space-x-4 p-4 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl shadow-sm">
-                        <div className="p-2.5 bg-blue-50 dark:bg-blue-900/20 rounded-xl text-primary"><Mail size={20} /></div>
-                        <div>
-                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Email Address</p>
-                            <p className="font-bold text-slate-900 dark:text-white">{customer.email}</p>
-                        </div>
-                    </div>
+                    <Input
+                        value={customer.email}
+                        label="Email Address"
+                        icon={<Mail size={18} />}
+                        disabled
+                        readOnly
+                        className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
+                    />
                 )}
             </div>
 
             <div className="flex space-x-3 pt-2">
-                <button
+                <OutlineButton
                     onClick={() => onEdit(customer)}
-                    className="flex-1 py-4 border border-slate-200 dark:border-slate-700 rounded-2xl font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                    className="flex-1"
                 >
                     Edit Profile
-                </button>
-                {/* <SecondaryButton
-                    onClick={() => onEdit(customer)}
-
-                >
-                    Edit Profile
-                </SecondaryButton> */}
-                <button
+                </OutlineButton>
+                <PrimaryButton
                     onClick={() => onNewSale(customer)}
-                    className="flex-1 py-4 bg-slate-900 dark:bg-slate-800 text-white rounded-2xl font-bold shadow-lg hover:scale-[1.02] active:scale-95 transition-all"
+                    className="flex-1"
                 >
                     New Sale
-                </button>
+                </PrimaryButton>
             </div>
         </div>
     );

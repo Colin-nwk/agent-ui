@@ -3,7 +3,7 @@ import {
    Search, UserPlus, Users, AlertCircle, Loader2, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import {
-   PrimaryButton, SecondaryButton, BottomSheetModal, StatCard
+   PrimaryButton, SecondaryButton, IconButton, BottomSheetModal, StatCard
 } from '../../components/common';
 import { useCustomers, useCreateCustomer, useUpdateCustomer, useCustomerStats } from '../../hooks/useCustomers';
 import { useToast } from '../../context';
@@ -99,23 +99,23 @@ const Customers: React.FC = () => {
                <span className="font-bold text-slate-900 dark:text-white">{total}</span> customers
             </p>
             <div className="flex items-center space-x-2">
-               <button
+               <IconButton
+                  variant="outline"
+                  icon={<ChevronLeft size={18} />}
                   onClick={() => setPage(p => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-               >
-                  <ChevronLeft size={18} />
-               </button>
+                  className="rounded-xl w-10 h-10"
+               />
                <span className="text-sm font-bold text-slate-900 dark:text-white px-3">
                   {page} / {totalPages}
                </span>
-               <button
+               <IconButton
+                  variant="outline"
+                  icon={<ChevronRight size={18} />}
                   onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
-                  className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-               >
-                  <ChevronRight size={18} />
-               </button>
+                  className="rounded-xl w-10 h-10"
+               />
             </div>
          </div>
       );
