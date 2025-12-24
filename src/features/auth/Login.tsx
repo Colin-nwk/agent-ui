@@ -44,20 +44,20 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
       </button>
 
-      <div className="max-w-md w-full bg-white dark:bg-slate-900 rounded-[2rem] sm:rounded-[3rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-500 border border-white/10 dark:border-slate-800">
-        <div className="bg-ubuxa-gradient p-8 sm:p-14 text-center text-white relative">
+      <div className="max-w-sm w-full bg-white dark:bg-slate-900 rounded-[2rem] sm:rounded-[3rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-500 border border-white/10 dark:border-slate-800">
+        <div className="bg-ubuxa-gradient p-4 sm:p-14 text-center text-white relative">
           <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
           <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/logo-icon-DNZnSknUp8lLLR2MbsmC5X4Nf2rXnN.png" alt="UBUXA" className="h-16 sm:h-20 mx-auto mb-4 object-contain drop-shadow-lg" />
           <p className="text-[9px] sm:text-[11px] font-black uppercase tracking-[0.3em] opacity-90">Secure Agent Access</p>
         </div>
 
-        <div className="p-6 sm:p-14 bg-white dark:bg-slate-900 transition-colors">
+        <div className="p-4 sm:p-10 bg-white dark:bg-slate-900 transition-colors">
           {step === 'phone' ? (
             <form onSubmit={handleRequestOtp} className="space-y-6 sm:space-y-8">
-              <div className="text-center mb-6 sm:mb-10">
+              {/* <div className="text-center mb-4 sm:mb-8">
                 <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Identity Entry</h2>
                 <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400 mt-2 font-medium">Log in to your agent workstation</p>
-              </div>
+              </div> */}
 
               <div className="relative group">
                 <Smartphone className="absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-ubuxa-blue transition-colors" size={20} />
@@ -81,10 +81,10 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               </button>
             </form>
           ) : (
-            <form onSubmit={handleVerifyOtp} className="space-y-6 sm:space-y-8">
-              <div className="text-center mb-6 sm:mb-10">
-                <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Verify Protocol</h2>
-                <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400 mt-2 font-medium">Code sent to <span className="text-slate-900 dark:text-white font-bold">{phone}</span></p>
+            <form onSubmit={handleVerifyOtp} className="space-y-4 sm:space-y-6">
+              <div className="text-center">
+                {/* <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Verify Protocol</h2> */}
+                <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400 font-medium">Code sent to <span className="text-slate-900 dark:text-white font-bold">{phone}</span></p>
               </div>
 
               <div className="relative group">
@@ -120,7 +120,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         </div>
       </div>
       <div className="absolute bottom-6 sm:bottom-10 text-slate-600 dark:text-slate-500 text-[8px] sm:text-[10px] font-black uppercase tracking-[0.2em] opacity-40 text-center px-4">
-        UBUXA Corporate Ecosystem • Secure Deployment
+        UBUXA Corporate Ecosystem
       </div>
     </div>
   );
