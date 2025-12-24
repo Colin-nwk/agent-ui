@@ -37,7 +37,8 @@ import {
   CloudOff,
   Globe
 } from 'lucide-react';
-import { BottomSheetModal, PrimaryButton, SecondaryButton, Input, SignaturePad, Select, FileUpload, Tabs, Toast } from '../../components/common';
+import { BottomSheetModal, PrimaryButton, SecondaryButton, Input, SignaturePad, Select, FileUpload, Tabs } from '../../components/common';
+import { useToast } from '../../context';
 import { getAllFromStore, addItemToStore, addToSyncQueue, updateItemInStore, deleteFromStore } from '../../services/db';
 
 const ITEMS_PER_PAGE = 5;
@@ -57,7 +58,7 @@ const Sales: React.FC = () => {
   // ---- View State ----
   const [activeView, setActiveView] = useState('history'); // 'history' | 'requests'
   const [requestTab, setRequestTab] = useState('sent'); // 'sent' | 'awaiting'
-  const [toast, setToast] = useState<{ title: string; message: string; type: any } | null>(null);
+  const { showToast } = useToast();
 
   // ---- Existing Wizard State ----
   const [showDrawer, setShowDrawer] = useState(false);
@@ -210,19 +211,19 @@ const Sales: React.FC = () => {
 
     if (editingRequestId) {
       await updateItemInStore('sales_requests', newRequest);
-      setToast({ title: 'Request Updated', message: 'Changes have been saved successfully.', type: 'success' });
+      showToast('Request Updated', 'Changes have been saved successfully.', 'success');
     } else {
       await addItemToStore('sales_requests', newRequest);
       if (AGENT_IS_VERIFIED) {
-        setToast({ title: 'Request Approved', message: 'Temporary account generated for payment.', type: 'success' });
+        showToast('Request Approved', 'Temporary account generated for payment.', 'success');
       } else {
-        setToast({ title: 'Request Submitted', message: 'Sent for admin approval.', type: 'info' });
+        showToast('Request Submitted', 'Sent for admin approval.', 'info');
       }
     }
 
     if (isOffline) {
       await addToSyncQueue({ type: 'CREATE_REQUEST', payload: newRequest });
-      setToast({ title: 'Saved Offline', message: 'Request will sync when online.', type: 'warning' });
+      showToast('Saved Offline', 'Request will sync when online.', 'warning');
     }
 
     resetRequestFlow();
@@ -233,13 +234,13 @@ const Sales: React.FC = () => {
     const updated = { ...req, syncStatus: 'SYNCED', lastModified: Date.now() };
     await updateItemInStore('sales_requests', updated);
     setIsSuccess(prev => !prev);
-    setToast({ title: 'Synced Successfully', message: 'Request has been sent to the server.', type: 'success' });
+    showToast('Synced Successfully', 'Request has been sent to the server.', 'success');
   };
 
   const handleDeleteRequest = async (id: string) => {
     await deleteFromStore('sales_requests', id);
     setIsSuccess(prev => !prev);
-    setToast({ title: 'Request Deleted', message: 'The local request has been removed.', type: 'info' });
+    showToast('Request Deleted', 'The local request has been removed.', 'info');
   };
 
   const handleEditRequest = (req: any) => {
@@ -329,14 +330,6 @@ const Sales: React.FC = () => {
 
   return (
     <div className="space-y-6 sm:space-y-8 animate-in slide-in-from-left-4 duration-500 pb-20 lg:pb-0">
-      {toast && (
-        <Toast
-          title={toast.title}
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
-      )}
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -435,7 +428,7 @@ const Sales: React.FC = () => {
               <div key={sale.id} onClick={() => setSelectedSaleDetails(sale)} className="p-5 sm:p-8 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800 transition-all cursor-pointer group active:bg-slate-100 dark:active:bg-slate-800">
                 <div className="flex items-center space-x-4 sm:space-x-8 min-w-0">
                   <div className={`w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl flex items-center justify-center transition-all shadow-sm shrink-0 ${sale.status === 'COMPLETED' ? 'bg-blue-50 dark:bg-blue-900/30 text-ubuxa-blue' :
-                      'bg-slate-100 dark:bg-slate-800 text-slate-400'
+                    'bg-slate-100 dark:bg-slate-800 text-slate-400'
                     }`}>
                     <ShoppingCart size={20} />
                   </div>
@@ -754,8 +747,8 @@ const Sales: React.FC = () => {
               <div className="flex items-center space-x-1.5 px-1">
                 {[1, 2, 3, 4, 5, 6].map(s => (
                   <div key={s} className={`h-1.5 rounded-full transition-all duration-500 ${wizardStep >= s
-                      ? 'bg-ubuxa-blue shadow-ubuxa-blue/50 shadow-lg'
-                      : 'bg-slate-700'
+                    ? 'bg-ubuxa-blue shadow-ubuxa-blue/50 shadow-lg'
+                    : 'bg-slate-700'
                     } ${wizardStep === s ? 'w-8 sm:w-10' : 'w-2 sm:w-3'}`}></div>
                 ))}
               </div>

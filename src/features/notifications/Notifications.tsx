@@ -13,7 +13,8 @@ import {
   Filter,
   Trash2
 } from 'lucide-react';
-import { PrimaryButton, Tabs, Toast } from '../../components/common';
+import { PrimaryButton, Tabs } from '../../components/common';
+import { useToast } from '../../context';
 import { Notification } from '../types';
 
 const MOCK_NOTIFICATIONS: Notification[] = [
@@ -31,7 +32,7 @@ const Notifications: React.FC = () => {
   const [activeTab, setActiveTab] = useState('all');
   const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
   const [searchQuery, setSearchQuery] = useState('');
-  const [toast, setToast] = useState<{ title: string; message: string; type: any } | null>(null);
+  const { showToast } = useToast();
 
   const filteredNotifications = useMemo(() => {
     return notifications.filter(n => {
@@ -54,7 +55,7 @@ const Notifications: React.FC = () => {
 
   const markAllAsRead = () => {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-    setToast({ title: 'Success', message: 'All notifications marked as read', type: 'success' });
+    showToast('Success', 'All notifications marked as read', 'success');
   };
 
   const deleteNotification = (id: string, e: React.MouseEvent) => {
@@ -90,14 +91,6 @@ const Notifications: React.FC = () => {
 
   return (
     <div className="space-y-6 sm:space-y-8 animate-in slide-in-from-right-4 duration-500 pb-24 lg:pb-0">
-      {toast && (
-        <Toast
-          title={toast.title}
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
-      )}
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>

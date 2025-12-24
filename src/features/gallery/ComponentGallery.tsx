@@ -48,13 +48,13 @@ import {
   Accordion,
   MultiSelect,
   DropdownMenu,
-  Toast,
   DataTable,
   Modal,
   BottomSheetModal,
   SignaturePad,
   CameraCapture
 } from '../../components/common';
+import { useToast } from '../../context';
 import { ColumnDef } from '@tanstack/react-table';
 
 // Color Swatch Sub-component
@@ -83,7 +83,7 @@ const ComponentGallery: React.FC = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const [openAccordion, setOpenAccordion] = useState<string | null>('q1');
   const [multiSelected, setMultiSelected] = useState<string[]>(['Hardware', 'Sales']);
-  const [notification, setNotification] = useState<{ title: string, message: string, type: any } | null>(null);
+  const { showToast } = useToast();
 
   // Interactive states for inputs
   const [isChecked, setIsChecked] = useState(true);
@@ -138,7 +138,7 @@ const ComponentGallery: React.FC = () => {
         const status = info.getValue() as string;
         return (
           <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${status === 'COMPLETED' ? 'bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400' :
-              status === 'PENDING' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400'
+            status === 'PENDING' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400'
             }`}>
             {status}
           </span>
@@ -173,15 +173,7 @@ const ComponentGallery: React.FC = () => {
         </div>
       </header>
 
-      {/* Notifications Demo */}
-      {notification && (
-        <Toast
-          title={notification.title}
-          message={notification.message}
-          type={notification.type}
-          onClose={() => setNotification(null)}
-        />
-      )}
+
 
       {/* 1. Colors & Palette */}
       <section className="space-y-6">
@@ -263,10 +255,10 @@ const ComponentGallery: React.FC = () => {
           <div className="pt-8 border-t border-slate-50 dark:border-slate-800">
             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Feedback Triggers</p>
             <div className="flex flex-wrap gap-4">
-              <SecondaryButton icon={<Info size={18} />} onClick={() => setNotification({ title: 'System Info', message: 'The database is syncing with the cloud.', type: 'info' })}>Info Toast</SecondaryButton>
-              <SecondaryButton icon={<CheckCircle2 size={18} />} onClick={() => setNotification({ title: 'Success', message: 'Transaction record was updated.', type: 'success' })}>Success Toast</SecondaryButton>
-              <SecondaryButton icon={<AlertTriangle size={18} />} onClick={() => setNotification({ title: 'Warning', message: 'Your stock levels are running low.', type: 'warning' })}>Warning Toast</SecondaryButton>
-              <SecondaryButton icon={<Trash2 size={18} />} onClick={() => setNotification({ title: 'Error', message: 'Failed to authenticate agent.', type: 'error' })}>Error Toast</SecondaryButton>
+              <SecondaryButton icon={<Info size={18} />} onClick={() => showToast('System Info', 'The database is syncing with the cloud.', 'info')}>Info Toast</SecondaryButton>
+              <SecondaryButton icon={<CheckCircle2 size={18} />} onClick={() => showToast('Success', 'Transaction record was updated.', 'success')}>Success Toast</SecondaryButton>
+              <SecondaryButton icon={<AlertTriangle size={18} />} onClick={() => showToast('Warning', 'Your stock levels are running low.', 'warning')}>Warning Toast</SecondaryButton>
+              <SecondaryButton icon={<Trash2 size={18} />} onClick={() => showToast('Error', 'Failed to authenticate agent.', 'error')}>Error Toast</SecondaryButton>
             </div>
           </div>
         </div>

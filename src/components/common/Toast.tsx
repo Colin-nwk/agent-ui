@@ -1,38 +1,126 @@
-import { useEffect } from 'react';
-import { X, Check, Info, AlertTriangle } from 'lucide-react';
+import { useEffect, useState, useRef } from 'react';
+import { X, Check, Info, AlertTriangle, AlertCircle } from 'lucide-react';
 
 interface ToastProps {
+    id: string;
     title: string;
     message: string;
     type?: 'info' | 'success' | 'warning' | 'error';
-    onClose: () => void;
+    duration?: number;
+    onClose: (id: string) => void;
 }
 
-export const Toast = ({ title, message, type = 'info', onClose }: ToastProps) => {
+export const Toast = ({ id, title, message, type = 'info', duration = 4000, onClose }: ToastProps) => {
+    const [isExiting, setIsExiting] = useState(false);
+    const [progress, setProgress] = useState(100);
+    const [isPaused, setIsPaused] = useState(false);
+    const [swipeX, setSwipeX] = useState(0);
+    const startX = useRef(0);
+    const currentX = useRef(0);
+
     useEffect(() => {
-        const timer = setTimeout(onClose, 4000);
-        return () => clearTimeout(timer);
-    }, [onClose]);
+        if (isPaused) return;
+
+        const startTime = Date.now();
+        const interval = setInterval(() => {
+            const elapsed = Date.now() - startTime;
+            const remaining = Math.max(0, 100 - (elapsed / duration) * 100);
+            setProgress(remaining);
+
+            if (remaining <= 0) {
+                handleClose();
+            }
+        }, 50);
+
+        return () => clearInterval(interval);
+    }, [duration, isPaused]);
+
+    const handleClose = () => {
+        setIsExiting(true);
+        setTimeout(() => onClose(id), 300);
+    };
+
+    const handleTouchStart = (e: React.TouchEvent) => {
+        startX.current = e.touches[0].clientX;
+        currentX.current = startX.current;
+    };
+
+    const handleTouchMove = (e: React.TouchEvent) => {
+        currentX.current = e.touches[0].clientX;
+        const deltaX = currentX.current - startX.current;
+        setSwipeX(deltaX);
+    };
+
+    const handleTouchEnd = () => {
+        const deltaX = currentX.current - startX.current;
+        if (Math.abs(deltaX) > 100) {
+            handleClose();
+        } else {
+            setSwipeX(0);
+        }
+    };
 
     const icons = {
-        info: <Info className="text-primary" />,
-        success: <Check className="text-green-500" />,
-        warning: <AlertTriangle className="text-orange-500" />,
-        error: <X className="text-red-500" />
+        info: <Info className="text-blue-500" size={20} />,
+        success: <Check className="text-green-500" size={20} />,
+        warning: <AlertTriangle className="text-amber-500" size={20} />,
+        error: <AlertCircle className="text-red-500" size={20} />
+    };
+
+    const borderColors = {
+        info: 'border-l-blue-500',
+        success: 'border-l-green-500',
+        warning: 'border-l-amber-500',
+        error: 'border-l-red-500'
+    };
+
+    const progressColors = {
+        info: 'bg-blue-500',
+        success: 'bg-green-500',
+        warning: 'bg-amber-500',
+        error: 'bg-red-500'
     };
 
     return (
-        <div className="fixed top-4 right-4 left-4 sm:left-auto sm:right-8 z-[9999] sm:w-full sm:max-w-sm bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl sm:rounded-[2rem] shadow-2xl p-4 sm:p-6 flex items-start space-x-4 animate-in slide-in-from-top-4 sm:slide-in-from-right-6 border-l-4 border-l-primary">
-            <div className="p-2 sm:p-3 bg-slate-50 dark:bg-slate-800 rounded-xl sm:rounded-2xl shadow-sm shrink-0">
-                {icons[type]}
+        <div
+            onMouseEnter={() => setIsPaused(true)}
+            onMouseLeave={() => setIsPaused(false)}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            style={{ transform: `translateX(${swipeX}px)`, opacity: Math.max(0, 1 - Math.abs(swipeX) / 200) }}
+            className={`
+                relative w-full sm:max-w-sm bg-white dark:bg-slate-900 
+                border border-slate-100 dark:border-slate-800 
+                rounded-2xl shadow-2xl overflow-hidden
+                transition-all duration-300 ease-out
+                border-l-4 ${borderColors[type]}
+                ${isExiting ? 'animate-out slide-out-to-right fade-out' : 'animate-in slide-in-from-top-2 sm:slide-in-from-right-4'}
+            `}
+        >
+            <div className="p-4 flex items-start gap-3">
+                <div className="p-2 bg-slate-50 dark:bg-slate-800 rounded-xl shrink-0">
+                    {icons[type]}
+                </div>
+                <div className="flex-1 min-w-0">
+                    <h4 className="font-bold text-slate-900 dark:text-white text-sm truncate">{title}</h4>
+                    <p className="text-slate-500 dark:text-slate-400 text-xs mt-0.5 leading-relaxed line-clamp-2">{message}</p>
+                </div>
+                <button
+                    onClick={handleClose}
+                    className="p-1.5 text-slate-300 hover:text-slate-600 dark:hover:text-white transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0"
+                >
+                    <X size={14} />
+                </button>
             </div>
-            <div className="flex-1 min-w-0">
-                <h4 className="font-bold text-slate-900 dark:text-white text-sm sm:text-[15px] truncate">{title}</h4>
-                <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm mt-1 leading-relaxed font-medium line-clamp-2">{message}</p>
+
+            {/* Progress bar */}
+            <div className="h-1 bg-slate-100 dark:bg-slate-800">
+                <div
+                    className={`h-full ${progressColors[type]} transition-all duration-100 ease-linear`}
+                    style={{ width: `${progress}%` }}
+                />
             </div>
-            <button onClick={onClose} className="p-1.5 text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors bg-slate-50 dark:bg-slate-800 rounded-lg shrink-0">
-                <X size={16} />
-            </button>
         </div>
     );
 };

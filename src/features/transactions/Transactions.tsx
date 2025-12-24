@@ -13,7 +13,8 @@ import {
   XCircle,
   Clock
 } from 'lucide-react';
-import { DataTable, PrimaryButton, Select, Input, Toast } from '../../components/common';
+import { DataTable, PrimaryButton, Select, Input } from '../../components/common';
+import { useToast } from '../../context';
 import { ColumnDef } from '@tanstack/react-table';
 
 const MOCK_TRANSACTIONS = [
@@ -30,13 +31,13 @@ const Transactions: React.FC = () => {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [filterType, setFilterType] = useState('ALL');
-  const [toast, setToast] = useState<{ title: string; message: string; type: any } | null>(null);
+  const { showToast } = useToast();
 
   const handleExport = () => {
-    setToast({ title: 'Export Initiated', message: 'Your transaction report is being generated and will download shortly.', type: 'info' });
+    showToast('Export Initiated', 'Your transaction report is being generated and will download shortly.', 'info');
     // Mock export logic
     setTimeout(() => {
-      setToast({ title: 'Download Complete', message: 'Transactions_Report_2024.xlsx has been saved.', type: 'success' });
+      showToast('Download Complete', 'Transactions_Report_2024.xlsx has been saved.', 'success');
     }, 2000);
   };
 
@@ -118,14 +119,6 @@ const Transactions: React.FC = () => {
 
   return (
     <div className="space-y-6 sm:space-y-8 animate-in slide-in-from-right-4 duration-500 pb-20 lg:pb-0">
-      {toast && (
-        <Toast 
-          title={toast.title} 
-          message={toast.message} 
-          type={toast.type} 
-          onClose={() => setToast(null)} 
-        />
-      )}
 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
