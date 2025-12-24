@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
-import { ThemeProvider, AuthProvider, useAuth } from './context';
+import { ThemeProvider, AuthProvider, useAuth, ToastProvider } from './context';
 import { ProtectedLayout } from './components/layout';
 import { initDB } from './services/db';
 
@@ -62,11 +62,13 @@ const AppRoutes = () => {
 const App = () => {
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <Router>
-          <AppRoutes />
-        </Router>
-      </AuthProvider>
+      <ToastProvider>
+        <AuthProvider>
+          <Router>
+            <AppRoutes />
+          </Router>
+        </AuthProvider>
+      </ToastProvider>
     </ThemeProvider>
   );
 };

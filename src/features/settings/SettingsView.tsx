@@ -30,11 +30,10 @@ import {
   SecondaryButton,
   FileUpload,
   Switch,
-  Toast,
   Select,
   DropdownMenu
 } from '../../components/common';
-import { useTheme, useAuth } from '../../context';
+import { useTheme, useAuth, useToast } from '../../context';
 
 interface PayoutChannel {
   id: string;
@@ -47,11 +46,12 @@ interface PayoutChannel {
 
 const SettingsView: React.FC = () => {
   // State for different UI flows
+  // State for different UI flows
   const [activeView, setActiveView] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ title: string; message: string; type: any } | null>(null);
 
   const { theme, toggleTheme } = useTheme();
   const { user: authUser } = useAuth();
+  const { showToast } = useToast();
 
   // Derived User Data from Context
   const user = {
@@ -71,10 +71,6 @@ const SettingsView: React.FC = () => {
   ]);
   const [channelFormView, setChannelFormView] = useState<'LIST' | 'FORM'>('LIST');
   const [currentChannel, setCurrentChannel] = useState<Partial<PayoutChannel>>({});
-
-  const showToast = (title: string, message: string, type: string = 'success') => {
-    setToast({ title, message, type });
-  };
 
   const handleSave = (viewName: string) => {
     showToast('Changes Saved', `Your ${viewName} has been successfully updated.`);
@@ -137,16 +133,6 @@ const SettingsView: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20 lg:pb-0">
-      {/* Toast Feedback */}
-      {toast && (
-        <Toast
-          title={toast.title}
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
-      )}
-
       {/* Header Section */}
       <div className="flex flex-col md:flex-row items-center md:items-start space-y-6 md:space-y-0 md:space-x-8 mb-12">
         <div className="relative group">
