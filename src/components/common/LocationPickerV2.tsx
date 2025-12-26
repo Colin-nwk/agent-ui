@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { GoogleMap, useLoadScript } from '@react-google-maps/api';
-import { MapPin, Navigation, Loader2 } from 'lucide-react';
+import { MapPin, Locate, Loader2, RotateCcw } from 'lucide-react';
 import { PrimaryButton } from './index';
 
 const libraries: ("places" | "marker")[] = ["places", "marker"];
@@ -12,8 +12,8 @@ const mapContainerStyle = {
 };
 
 const defaultCenter = {
-    lat: 6.5244,  // Lagos, Nigeria
-    lng: 3.3792,
+    lat: 9.0765,  // Abuja, Nigeria
+    lng: 7.3986,
 };
 
 interface LocationPickerProps {
@@ -27,9 +27,15 @@ const LocationPickerV2: React.FC<LocationPickerProps> = ({ value, onChange, onCl
     const [markerPos, setMarkerPos] = useState<{ lat: number; lng: number } | null>(
         value?.lat && value?.lng ? { lat: parseFloat(value.lat), lng: parseFloat(value.lng) } : null
     );
+    // State for the map center - defaults to Abuja, but will try to update to user location
+    const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number }>(
+        value?.lat && value?.lng ? { lat: parseFloat(value.lat), lng: parseFloat(value.lng) } : defaultCenter
+    );
     const [address, setAddress] = useState(value?.address || '');
     const [isLocating, setIsLocating] = useState(false);
 
+    // Store reference to the autocomplete element to clear it
+    const autocompleteInstanceRef = useRef<any>(null);
     const placeAutocompleteRef = useRef<HTMLInputElement>(null);
     const mapRef = useRef<google.maps.Map | null>(null);
     const markerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
@@ -39,24 +45,65 @@ const LocationPickerV2: React.FC<LocationPickerProps> = ({ value, onChange, onCl
         libraries,
     });
 
+    // Try to get user location on mount if no value is provided
+    useEffect(() => {
+        if (!value?.lat && !value?.lng && navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const userPos = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
+                    setMapCenter(userPos);
+                },
+                (error) => {
+                    console.log("Could not get user location for default center", error);
+                },
+                { enableHighAccuracy: false, timeout: 5000 }
+            );
+        }
+    }, []); // Run once on mount
+
     // Handle Place Autocomplete
     useEffect(() => {
         if (isLoaded && placeAutocompleteRef.current) {
+            // Check if element already exists to prevent duplication
+            if (placeAutocompleteRef.current.firstChild) {
+                return;
+            }
+
             // @ts-ignore - PlaceAutocompleteElement is not yet in @types/google.maps
             const autocomplete = new google.maps.places.PlaceAutocompleteElement();
+            autocompleteInstanceRef.current = autocomplete;
             placeAutocompleteRef.current.appendChild(autocomplete);
 
             const listener = autocomplete.addEventListener('gmp-placeselect', async ({ place }: any) => {
-                await place.fetchFields({ fields: ['location', 'formattedAddress', 'displayName'] });
-                const lat = place.location.lat();
-                const lng = place.location.lng();
-                setMarkerPos({ lat, lng });
-                setAddress(place.formattedAddress || place.displayName || '');
-                mapRef.current?.panTo({ lat, lng });
-                mapRef.current?.setZoom(16);
+                if (!place) return;
+                try {
+                    await place.fetchFields({ fields: ['location', 'formattedAddress', 'displayName'] });
+
+                    if (place.location) {
+                        const lat = place.location.lat();
+                        const lng = place.location.lng();
+                        const newPos = { lat, lng };
+
+                        setMarkerPos(newPos);
+                        setMapCenter(newPos);
+                        setAddress(place.formattedAddress || place.displayName || '');
+
+                        if (mapRef.current) {
+                            mapRef.current.panTo(newPos);
+                            mapRef.current.setZoom(16);
+                        }
+                    }
+                } catch (error) {
+                    console.error("Error fetching place details:", error);
+                }
             });
 
             return () => {
+                // Cleanup handled by React unmount largely, but good to remove listener if we could
+                // In this pattern, we just let the ref unmount.
                 if (placeAutocompleteRef.current && autocomplete) {
                     try {
                         placeAutocompleteRef.current.removeChild(autocomplete);
@@ -73,11 +120,15 @@ const LocationPickerV2: React.FC<LocationPickerProps> = ({ value, onChange, onCl
         if (mapRef.current) {
             if (markerPos) {
                 if (!markerRef.current) {
-                    // Create new marker
-                    markerRef.current = new google.maps.marker.AdvancedMarkerElement({
-                        map: mapRef.current,
-                        position: markerPos,
-                    });
+                    try {
+                        // Create new marker
+                        markerRef.current = new google.maps.marker.AdvancedMarkerElement({
+                            map: mapRef.current,
+                            position: markerPos,
+                        });
+                    } catch (e) {
+                        console.error("Error creating AdvancedMarkerElement", e);
+                    }
                 } else {
                     // Update existing marker
                     markerRef.current.position = markerPos;
@@ -91,7 +142,7 @@ const LocationPickerV2: React.FC<LocationPickerProps> = ({ value, onChange, onCl
             }
         }
 
-    }, [markerPos, isLoaded]); // Re-run when position changes
+    }, [markerPos, isLoaded]);
 
 
     const onMapClick = useCallback((e: google.maps.MapMouseEvent) => {
@@ -126,9 +177,11 @@ const LocationPickerV2: React.FC<LocationPickerProps> = ({ value, onChange, onCl
             (position) => {
                 const lat = position.coords.latitude;
                 const lng = position.coords.longitude;
-                setMarkerPos({ lat, lng });
+                const newPos = { lat, lng };
+                setMarkerPos(newPos);
+                setMapCenter(newPos);
                 reverseGeocode(lat, lng);
-                mapRef.current?.panTo({ lat, lng });
+                mapRef.current?.panTo(newPos);
                 mapRef.current?.setZoom(16);
                 setIsLocating(false);
             },
@@ -139,6 +192,20 @@ const LocationPickerV2: React.FC<LocationPickerProps> = ({ value, onChange, onCl
             },
             { enableHighAccuracy: true, timeout: 10000 }
         );
+    };
+
+    const handleReset = () => {
+        setMarkerPos(null);
+        setAddress('');
+        setMapCenter(defaultCenter); // Reset to Abuja
+        if (mapRef.current) {
+            mapRef.current.setZoom(12);
+            mapRef.current.panTo(defaultCenter);
+        }
+        // Clear the autocomplete input
+        if (autocompleteInstanceRef.current) {
+            autocompleteInstanceRef.current.value = null;
+        }
     };
 
     const handleConfirm = () => {
@@ -173,10 +240,25 @@ const LocationPickerV2: React.FC<LocationPickerProps> = ({ value, onChange, onCl
 
     return (
         <div className="space-y-4">
+            {/* Inject CSS for PlaceAutocompleteElement to support Dark Mode */}
+            <style>{`
+                gmp-place-autocomplete-element {
+                    --gmp-place-autocomplete-header-background: #ffffff;
+                    --gmp-place-autocomplete-item-text-color: #1e293b; 
+                }
+                .dark gmp-place-autocomplete-element {
+                    --gmp-place-autocomplete-header-background: #1e293b; /* slate-800 */
+                    --gmp-place-autocomplete-item-text-color: #f8fafc; /* slate-50 */
+                    --gmp-place-autocomplete-item-background: #1e293b;
+                    --gmp-place-autocomplete-background: #1e293b;
+                    --gmp-text-color: #f8fafc;
+                }
+            `}</style>
+
             {/* Search Box Container */}
-            <div className="relative">
+            <div className={`relative ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
                 {/* PlaceAutocompleteElement will be appended here */}
-                <div ref={placeAutocompleteRef} className="w-full" />
+                <div ref={placeAutocompleteRef} className="w-full [&>gmp-place-autocomplete-element]:w-full" />
             </div>
 
             {/* Map */}
@@ -184,31 +266,40 @@ const LocationPickerV2: React.FC<LocationPickerProps> = ({ value, onChange, onCl
                 <GoogleMap
                     mapContainerStyle={mapContainerStyle}
                     zoom={markerPos ? 16 : 12}
-                    center={markerPos || defaultCenter}
+                    center={mapCenter}
                     onClick={onMapClick}
                     onLoad={(map) => { mapRef.current = map; }}
                     options={{
                         streetViewControl: false,
-                        mapTypeControl: false,
-                        fullscreenControl: false,
-                        mapId: "DEMO_MAP_ID" // Required for AdvancedMarkerElement
+                        mapTypeControl: true,
+                        fullscreenControl: true,
+                        mapId: "DEMO_MAP_ID"
                     }}
                 >
                     {/* Marker component removed, handled via useEffect and AdvancedMarkerElement */}
                 </GoogleMap>
 
-                {/* Get Current Location Button */}
+                {/* Get Current Location Button - LEFT */}
                 <button
                     onClick={getCurrentLocation}
                     disabled={isLocating}
-                    className="absolute bottom-4 right-4 p-3 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
+                    className="absolute bottom-4 left-4 p-3 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
                     title="Use my location"
                 >
                     {isLocating ? (
                         <Loader2 size={20} className="animate-spin text-primary" />
                     ) : (
-                        <Navigation size={20} className="text-primary" />
+                        <Locate size={20} className="text-primary" />
                     )}
+                </button>
+
+                {/* Reset Button - RIGHT */}
+                <button
+                    onClick={handleReset}
+                    className="absolute bottom-4 right-4 p-3 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                    title="Reset Map"
+                >
+                    <RotateCcw size={20} className="text-slate-600 dark:text-slate-300" />
                 </button>
             </div>
 
@@ -227,7 +318,6 @@ const LocationPickerV2: React.FC<LocationPickerProps> = ({ value, onChange, onCl
 
             {/* Actions */}
             <div className="flex gap-3">
-
                 <PrimaryButton
                     onClick={handleConfirm}
                     disabled={!markerPos || !address}

@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { GoogleMap, useLoadScript, Marker, Autocomplete } from '@react-google-maps/api';
-import { MapPin, Navigation, X, Search, Loader2 } from 'lucide-react';
+import { MapPin, Locate, X, Search, Loader2, RotateCcw } from 'lucide-react';
 import { PrimaryButton, SecondaryButton } from './index';
 
 const libraries: ("places")[] = ["places"];
@@ -12,8 +12,8 @@ const mapContainerStyle = {
 };
 
 const defaultCenter = {
-    lat: 6.5244,  // Lagos, Nigeria
-    lng: 3.3792,
+    lat: 9.0765,  // Abuja, Nigeria
+    lng: 7.3986,
 };
 
 interface LocationPickerProps {
@@ -27,15 +27,46 @@ const LocationPicker: React.FC<LocationPickerProps> = ({ value, onChange, onClos
     const [marker, setMarker] = useState<{ lat: number; lng: number } | null>(
         value?.lat && value?.lng ? { lat: parseFloat(value.lat), lng: parseFloat(value.lng) } : null
     );
+    // Map center state
+    const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number }>(
+        value?.lat && value?.lng ? { lat: parseFloat(value.lat), lng: parseFloat(value.lng) } : defaultCenter
+    );
+
     const [address, setAddress] = useState(value?.address || '');
     const [isLocating, setIsLocating] = useState(false);
     const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
     const mapRef = useRef<google.maps.Map | null>(null);
+    // Ref for the input element to clear it
+    const inputRef = useRef<HTMLInputElement>(null);
 
     const { isLoaded, loadError } = useLoadScript({
         googleMapsApiKey: apiKey,
         libraries,
     });
+
+    // Try to get user location on mount if no value is provided
+    useEffect(() => {
+        if (!value?.lat && !value?.lng && navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const userPos = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
+                    setMarker(userPos); // Optional: set marker to user location initially? Or just center?
+                    // Let's just center if we don't want to auto-select
+                    // But usually "Use my location" implies selection.
+                    // For auto-on-mount, let's just center for now, or match V2 behavior.
+                    // V2 behavior was: setMapCenter(userPos)
+                    setMapCenter(userPos);
+                },
+                (error) => {
+                    console.log("Could not get user location for default center", error);
+                },
+                { enableHighAccuracy: false, timeout: 5000 }
+            );
+        }
+    }, []);
 
     const onMapClick = useCallback((e: google.maps.MapMouseEvent) => {
         if (e.latLng) {
@@ -63,9 +94,11 @@ const LocationPicker: React.FC<LocationPickerProps> = ({ value, onChange, onClos
         if (place?.geometry?.location) {
             const lat = place.geometry.location.lat();
             const lng = place.geometry.location.lng();
-            setMarker({ lat, lng });
+            const newPos = { lat, lng };
+            setMarker(newPos);
+            setMapCenter(newPos); // Update center
             setAddress(place.formatted_address || place.name || '');
-            mapRef.current?.panTo({ lat, lng });
+            mapRef.current?.panTo(newPos);
             mapRef.current?.setZoom(16);
         }
     };
@@ -81,9 +114,11 @@ const LocationPicker: React.FC<LocationPickerProps> = ({ value, onChange, onClos
             (position) => {
                 const lat = position.coords.latitude;
                 const lng = position.coords.longitude;
-                setMarker({ lat, lng });
+                const newPos = { lat, lng };
+                setMarker(newPos);
+                setMapCenter(newPos);
                 reverseGeocode(lat, lng);
-                mapRef.current?.panTo({ lat, lng });
+                mapRef.current?.panTo(newPos);
                 mapRef.current?.setZoom(16);
                 setIsLocating(false);
             },
@@ -94,6 +129,19 @@ const LocationPicker: React.FC<LocationPickerProps> = ({ value, onChange, onClos
             },
             { enableHighAccuracy: true, timeout: 10000 }
         );
+    };
+
+    const handleReset = () => {
+        setMarker(null);
+        setAddress('');
+        setMapCenter(defaultCenter);
+        if (mapRef.current) {
+            mapRef.current.setZoom(12);
+            mapRef.current.panTo(defaultCenter);
+        }
+        if (inputRef.current) {
+            inputRef.current.value = '';
+        }
     };
 
     const handleConfirm = () => {
@@ -137,6 +185,7 @@ const LocationPicker: React.FC<LocationPickerProps> = ({ value, onChange, onClos
                     <div className="relative">
                         <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                         <input
+                            ref={inputRef}
                             type="text"
                             placeholder="Search for a location..."
                             className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-primary"
@@ -150,7 +199,7 @@ const LocationPicker: React.FC<LocationPickerProps> = ({ value, onChange, onClos
                 <GoogleMap
                     mapContainerStyle={mapContainerStyle}
                     zoom={marker ? 16 : 12}
-                    center={marker || defaultCenter}
+                    center={mapCenter}
                     onClick={onMapClick}
                     onLoad={(map) => { mapRef.current = map; }}
                     options={{
@@ -162,18 +211,27 @@ const LocationPicker: React.FC<LocationPickerProps> = ({ value, onChange, onClos
                     {marker && <Marker position={marker} />}
                 </GoogleMap>
 
-                {/* Get Current Location Button */}
+                {/* Get Current Location Button - LEFT */}
                 <button
                     onClick={getCurrentLocation}
                     disabled={isLocating}
-                    className="absolute bottom-4 right-4 p-3 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
+                    className="absolute bottom-4 left-4 p-3 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
                     title="Use my location"
                 >
                     {isLocating ? (
                         <Loader2 size={20} className="animate-spin text-primary" />
                     ) : (
-                        <Navigation size={20} className="text-primary" />
+                        <Locate size={20} className="text-primary" />
                     )}
+                </button>
+
+                {/* Reset Button - RIGHT */}
+                <button
+                    onClick={handleReset}
+                    className="absolute bottom-4 right-4 p-3 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                    title="Reset Map"
+                >
+                    <RotateCcw size={20} className="text-slate-600 dark:text-slate-300" />
                 </button>
             </div>
 
@@ -192,7 +250,6 @@ const LocationPicker: React.FC<LocationPickerProps> = ({ value, onChange, onClos
 
             {/* Actions */}
             <div className="flex gap-3">
-
                 <PrimaryButton
                     onClick={handleConfirm}
                     disabled={!marker || !address}
