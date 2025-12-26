@@ -14,7 +14,8 @@ export { Modal, SideDrawer, BottomSheetModal } from './Modal';
 export { Toast } from './Toast';
 export { DropdownMenu } from './DropdownMenu';
 export { default as CameraModal } from './CameraModal';
-export { default as LocationPicker } from './LocationPicker';
+export { default as LocationPickerLegacy } from './LocationPicker';
+export { default as LocationPicker } from './LocationPickerV2';
 
 // Navigation & Layout
 export { Tabs } from './Tabs';
